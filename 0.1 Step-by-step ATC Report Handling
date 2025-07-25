@@ -1,0 +1,86 @@
+Step-by-step ATC Report Handling
+
+
+ChatGPT said:
+Here’s a step-by-step guide to handling ATC (ABAP Test Cockpit) reports during SAP ECC to S/4HANA migration:
+
+🎯 Goal:
+Use ATC (ABAP Test Cockpit) to detect and fix custom code issues that are incompatible with S/4HANA (like obsolete tables, functions, or syntax).
+
+✅ Step-by-Step ATC Report Handling
+🔹 STEP 1: Setup ATC System Landscape
+Option A: Run ATC Locally
+Use when both ECC and S/4 are on same system (POC/testing)
+
+Option B: Central Check System (Recommended for migration)
+Install ATC on S/4HANA system (Central)
+
+Connect ECC (remote check system)
+
+Configure in Transaction: ATC
+
+🔹 STEP 2: Create and Activate Check Variant
+Use SAP's predefined variant for S/4HANA:
+
+S4HANA_READINESS_<version> (e.g., S4HANA_READINESS_2022)
+
+S4HANA_DEPRECATED, S4HANA_OBSOLETE
+
+T-code: ATC
+
+Navigate to "Check Variants"
+
+You can customize the variant if needed
+
+🔹 STEP 3: Run ATC Check on Custom Code
+Go to T-code: ATC
+
+Choose "Schedule Runs"
+
+Enter:
+
+Check Variant: S4HANA_READINESS_2022
+
+Package or object name: (e.g., Z*)
+
+Click “Schedule”
+
+🕒 ATC will now analyze your selected objects.
+
+🔹 STEP 4: View & Analyze ATC Results
+Go to: ATC → Manage Results
+
+Select your run → Expand object list
+
+For each finding, it shows:
+
+Object Name (Program/Fugr/FM)
+
+Message ID (e.g., "Table MSEG is obsolete")
+
+Priority (1=high, 3=low)
+
+Simplification Item / SAP Note (sometimes linked)
+
+✅ Tip: Double-click on error to jump directly into affected code in SE80 or Eclipse ADT.
+
+🔹 STEP 5: Categorize & Filter Findings
+Category	Example	Action
+Obsolete DB Access	SELECT * FROM MSEG	Replace with CDS views (I_MaterialDocumentItem)
+Deprecated FM/BAPI	CALL FUNCTION 'GET_VAT'	Replace with recommended APIs
+Syntax/Keyword issues	WRITE, TOP-OF-PAGE	Refactor using modern syntax
+BDC Issues	CALL TRANSACTION 'ME21N'	Switch to BAPI or Fiori
+
+📄 Export ATC findings to Excel for worklist creation.
+
+🔹 STEP 6: Fix Code (Refactoring)
+Use:
+
+CDS Views instead of Tables (e.g., BSID → I_CustomerOpenItem)
+
+New BAPIs / Fiori APIs instead of old FMs
+
+Eclipse ADT for latest ABAP features & testing
+
+✔ Test each fix in DEV system
+✔ Document in Excel worklist
