@@ -1,0 +1,220 @@
+ECC to S/4HANA projects- Migration steps with ABAP code
+
+
+ChatGPT said:
+Migrating from SAP ECC to S/4HANA is a major transformation project that involves technical, functional, and ABAP custom code migration.
+
+Below is a high-level guide covering:
+
+✅ ECC to S/4HANA Migration Steps
+
+🧩 ABAP Custom Code Migration Process
+
+🧪 Useful Tools
+
+🛠️ Sample ABAP Adjustments/Code Examples
+
+✅ 1. ECC to S/4HANA Migration Steps (Simplified)
+Phase	Description
+1. Assessment & Planning	Evaluate existing ECC system, custom objects, and decide migration approach (Greenfield, Brownfield, or Hybrid)
+2. System Preparation	Upgrade SPAM, SUM tools, install Maintenance Planner files
+3. Custom Code Analysis	Run ABAP Test Cockpit (ATC), Custom Code Migration App
+4. Data Cleansing	Archive or correct outdated data (master/transactional)
+5. System Conversion	Use Software Update Manager (SUM) with Database Migration Option (DMO)
+6. Post-Conversion Activities	Functional testing, code remediation, and optimization
+7. Go-live & Support	Final checks, system cutover, and hypercare support
+
+🧩 2. ABAP Code Migration: Key Steps
+SAP S/4HANA removes/replaces many ECC-specific objects and tables. ABAP code must be cleaned up accordingly.
+
+🚀 Steps:
+Install Custom Code Migration Worklist App
+
+T-code: SYCM
+
+Run ATC Checks (ABAP Test Cockpit)
+
+T-code: ATC or run from Eclipse ADT
+
+Use variant: S4HANA_READINESS_<version>
+
+Identify:
+
+Obsolete transactions, function modules
+
+Direct SELECTs from old tables (BSID, VBRK, MSEG, etc.)
+
+Usage of classical BAPIs that are deprecated
+
+Adjust custom code based on ATC findings
+
+🛠️ 3. Common Adjustments in ABAP Code
+❌ Example: Deprecated Table (BSID)
+abap
+Copy
+Edit
+SELECT * FROM BSID INTO TABLE lt_bsids WHERE kunnr = lv_kunnr.
+✅ Replacement: Use CDS View (like I_BillingDocument)
+abap
+Copy
+Edit
+SELECT * FROM I_CustomerOpenItem WHERE Customer = lv_kunnr INTO TABLE lt_open_items.
+❌ Example: SELECT on MSEG (replaced with CDS views)
+abap
+Copy
+Edit
+SELECT * FROM MSEG INTO TABLE lt_mseg WHERE matnr = lv_matnr.
+✅ Recommended: CDS-based logic
+abap
+Copy
+Edit
+SELECT * FROM I_MaterialDocumentItem WHERE Material = lv_matnr INTO TABLE lt_material_docs.
+🧪 4. Useful Tools
+Tool	Purpose
+ATC (ABAP Test Cockpit)	Find syntax and compatibility issues
+SCI (Code Inspector)	Deep inspection of custom objects
+CDMC (Custom Development Management Cockpit)	Usage tracking
+SYCM (Custom Code Migration App)	Generate worklist
+SUM (Software Update Manager)	System conversion
+SNOTE	Apply relevant OSS notes
+Eclipse ADT	Mandatory for new ABAP development in S/4HANA
+
+💡 Tips for Clean Migration
+Clean up unused Z objects (use usage stats via CDMC)
+
+Replace APPEND + SORT with SORTED/HASHED TABLES
+
+Avoid direct database updates (MODIFY dbtab)
+
+Replace WRITE, SELECTION-SCREEN, etc. with Fiori/UI5-based output where applicable
+
+Check BDCs—they may break; prefer BAPIs or Fiori APIs
+
+🔧 ABAP Code Example: Table Replacement Using CDS View
+Before (ECC)
+abap
+Copy
+Edit
+SELECT SINGLE * FROM VBRK INTO ls_vbrk WHERE vbeln = lv_vbeln.
+After (S/4HANA)
+abap
+Copy
+Edit
+SELECT SINGLE * FROM I_BillingDocumentBasic WHERE BillingDocument = lv_vbeln INTO @DATA(ls_vbrk).
+📘 Want a Migration Kit?
+I can help you generate:
+
+Custom Code Worklist (in Excel)
+
+ABAP Fix Templates
+
+Step-by-step ATC Report Handling
+
+S/4 CDS View Mapping Sheet
+
+Just let me know your system version and objects used (Z tables, custom FMs, etc.), and I’ll help further.
+
+
+
+
+
+
+
+
+You said:
+Custom Code Worklist (in Excel) in S4 HANA migration
+
+
+ChatGPT said:
+Creating a Custom Code Worklist in Excel is a key part of an SAP S/4HANA migration project. This helps you track which ABAP custom developments need changes due to incompatibilities, simplifications, or obsolete elements in S/4HANA.
+
+Below is a complete guide to generate it:
+
+✅ Objective:
+To generate a Custom Code Worklist (Excel format) that lists:
+
+Custom objects (Z* programs, tables, FMs, etc.)
+
+Impact (S/4 incompatible, simplifications, deleted elements)
+
+Remediation notes/actions
+
+Responsible developer/team
+
+Status (Open/In Progress/Completed)
+
+🛠️ Tools Required:
+Tool	Purpose
+SAP Custom Code Migration App (SYCM)	Identify impacted custom code
+ATC (ABAP Test Cockpit)	Run detailed checks
+Eclipse ADT	For analyzing and fixing code
+SAP Readiness Check (optional)	Consolidated view of readiness
+
+🔁 Step-by-Step: Generate Worklist in Excel
+🔹 Step 1: Run SYCM in ECC System (Optional Pre-check)
+Transaction: SYCM_DOWNLOAD_REPOSITORY_INFO
+This collects repository data (custom programs, function groups, classes, etc.).
+
+Download the repository info as a ZIP file.
+
+Upload it later to your S/4HANA system or Custom Code Migration Fiori App.
+
+🔹 Step 2: Run ATC in S/4HANA System
+Use ATC (Transaction: ATC) or via Eclipse ADT:
+
+Configuration:
+Setup Central Check System
+
+Use check variant: S4HANA_READINESS_<version> or S4HANA_ALL
+
+Scope: Select Z* objects only or entire package
+
+Run:
+bash
+Copy
+Edit
+ATC → Schedule Runs → Create New Run
+🔹 Step 3: Export ATC Results to Excel
+After the ATC run:
+
+Go to: ATC → Manage Results
+
+Open your run result → Click “Export”
+
+Choose Export to Excel or CSV
+
+This gives a detailed Excel with:
+
+Object Name	Type	Priority	Error Type	Message	Correction Note
+
+🔹 Step 4: Use SAP Fiori App: Custom Code Migration (Optional)
+If using Fiori:
+
+App: Custom Code Migration
+
+Import ZIP from ECC (Step 1)
+
+Analyze usage and compatibility
+
+Export results as Excel
+
+📘 Sample Worklist Format (Excel Columns)
+Object Name	Object Type	Issue Category	Description	SAP Note/Link	Action Needed	Status	Owner	Comments
+ZMMR001	Report	Obsolete DB Table	Uses MSEG	View I_MaterialDocItem	Replace DB access with CDS	In Progress	Ravi	Mapped CDS in dev
+ZSD_FUNC01	FM	Deleted FM	CALL FUNCTION 'GET_VAT'	-	Replace logic	Open	Suresh	Obsolete FM
+
+📎 Pro Tip:
+You can also enhance the Excel sheet by adding:
+
+ATC Priority (High/Medium/Low)
+
+Suggested replacement (CDS views, new APIs)
+
+Target completion date
+
+✅ Summary
+Step	Action
+1	Run SYCM (ECC) or start directly in S/4
+2	Execute ATC using S4HANA_READINESS check
+3	Export ATC results to Excel
+4	Create remediation plan from exported file
